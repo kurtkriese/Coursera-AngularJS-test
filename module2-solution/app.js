@@ -2,112 +2,94 @@
 'use strict';
 
 angular.module('ShoppingApp', [])
-.controller('ToBuyController', ToBuyController)
-.controller('BLCtrlController', BLCtrlController)
-.controller('ShoppingListController',ShoppingListController)
-.factory('ShoppingListServiceFactory', ShoppingListServiceFactory);
+.controller('AlreadyBoughtShoppingController',AlreadyBoughtShoppingController)
+.controller('ToBuyShoppingController', ToBuyShoppingController)
+.service('ShoppingListCheckOffService', ShoppingListCheckOffService);
 
-ShoppingListController.$inject = ['$scope','ShoppingListServiceFactory'];
-function ShoppingListController($scope,ShoppingListServiceFactory) {
-  $scope.SLCtrl = this;
+AlreadyBoughtShoppingController.$inject = ['ShoppingListCheckOffService'];
+function AlreadyBoughtShoppingController(ShoppingListCheckOffService)
+{
   var SLCtrl = this;
-  var shoppingListService = ShoppingListServiceFactory();
 
   SLCtrl.isTBCtrlLoaded = Boolean(0===1);
   SLCtrl.everthingBought = Boolean(0===1);
   SLCtrl.nothingBought = Boolean(1===1);
-  SLCtrl.bLItems = shoppingListService.getItems();
+  SLCtrl.bLItems = ShoppingListCheckOffService.getItems('SLCtrl');
 
-  SLCtrl.buyItem = function(thisItemName,thisItemQuantity) {
-//     buyThisItem = Boolean(1===1);
-     console.log("SLCtrl $scope: ", $scope);
-     shoppingListService.addItem(thisItemName,thisItemQuantity);
+  SLCtrl.buyItem = function(thisItemName,thisItemQuantity)
+  {
+     ShoppingListCheckOffService.addItem(SLCtrl.bLItems,thisItemName,thisItemQuantity);
      SLCtrl.nothingBought = Boolean(0===1);
   }
 };
 
-// LIST To Sell - controller
-ToBuyController.$inject = ['$scope','ShoppingListServiceFactory'];
-function ToBuyController($scope,ShoppingListServiceFactory) {
+// LIST To Buy - controller
+ToBuyShoppingController.$inject = ['$scope','ShoppingListCheckOffService'];
+function ToBuyShoppingController($scope,ShoppingListCheckOffService) {
   var TBCtrl = this;
-  $scope.TBCtrl=this;
-
-  var toBuyShoppingList = ShoppingListServiceFactory();
-
-  TBCtrl.tbitems = toBuyShoppingList.getItems();
-
+  var tBItems = [];
   var TBCtrlLoaded = function () {
     return Boolean(TBCtrl.tbitems.length > 0);
   };
 
-if (!$scope.SLCtrl.isTBCtrlLoaded) {
-    toBuyShoppingList.addItem("cookies", 12 );
-    toBuyShoppingList.addItem("bag of potato chips", 1);
-    toBuyShoppingList.addItem("celery stalk", 1);
-    toBuyShoppingList.addItem("bunch of carrots", 1);
-    toBuyShoppingList.addItem("hummus container", 1);
-    toBuyShoppingList.addItem("glazed donuts",12);
-    $scope.SLCtrl.isTBCtrlLoaded = TBCtrlLoaded();
- };
-
   TBCtrl.emptyListMessage = $scope.SLCtrl.everthingBought;
   TBCtrl.itemName = "";
   TBCtrl.itemQuantity = "";
+  ShoppingListCheckOffService.LoadToBuyItems();
+  TBCtrl.tbitems = ShoppingListCheckOffService.getItems('TBCtrl');
 
-  TBCtrl.addItem = function () {
-    toBuyShoppingList.addItem(TBCtrl.itemName, TBCtrl.itemQuantity);
-  };
-
-   TBCtrl.buyItem = function (itemIndex) {
+  TBCtrl.buyItem = function (itemIndex)
+  {
     var thisItem = TBCtrl.tbitems[itemIndex];
     var thisItemName = thisItem.name;
     var thisItemQuantity = thisItem.quantity;
     var thisIndexValue  = itemIndex;
     $scope.SLCtrl.buyItem(thisItemName,thisItemQuantity);
-    toBuyShoppingList.removeItem(itemIndex);
+    ShoppingListCheckOffService.removeItem(itemIndex);
     $scope.SLCtrl.everthingBought = Boolean(TBCtrl.tbitems.length < 1);
- };
-};
-
-// Bought Items - controller
- BLCtrlController.$inject = ['$scope'];
- function BLCtrlController($scope) {
-   var BLCtrl = this;
-   $scope.BLCtrl=this;
-   var sLCtrl = $scope.SLCtrl;
-
-  BLCtrl.items = sLCtrl.bLItems;
-  BLCtrl.itemQuantity = "";
+  };
 };
 
 // Service
-function ShoppingListService() {
+function ShoppingListCheckOffService () {
   var service = this;
-   var items = [];
+  var toBuyItems = [];
+  var boughtItems = [];
 
-  service.addItem = function (itemName, quantity) {
+  service.LoadToBuyItems = function ()
+         {
+          service.addItem(toBuyItems,"cookies", 12 );
+          service.addItem(toBuyItems,"bag of potato chips", 1);
+          service.addItem(toBuyItems,"celery stalk", 1);
+          service.addItem(toBuyItems,"bunch of carrots", 1);
+          service.addItem(toBuyItems,"hummus container", 1);
+          service.addItem(toBuyItems,"glazed donuts",12);
+   };
+
+  service.addItem = function (itemArray,itemName, quantity)
+  {
     var item = {
         name: itemName,
-        quantity: quantity
+        quantity: quantity };
+      itemArray.push(item);
+  };
+
+  service.removeItem = function (itemIndex)
+  {
+    toBuyItems.splice(itemIndex, 1);
+  };
+
+  service.getItems = function (CallingCtrl)
+  {
+    var items = [];
+    if (CallingCtrl === 'SLCtrl')
+      {items = boughtItems
+      }
+    else
+      {items = toBuyItems
       };
-      items.push(item);
-  };
-
-  service.removeItem = function (itemIndex) {
-    items.splice(itemIndex, 1);
-  };
-
-  service.getItems = function () {
     return items;
   };
-}
-
-function ShoppingListServiceFactory() {
-  var factory = function () {
-    return new ShoppingListService();
-  };
-
-  return factory;
-}
+};
 
 })();

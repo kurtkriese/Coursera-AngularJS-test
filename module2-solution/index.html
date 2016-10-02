@@ -25,13 +25,13 @@
     </style>
   </head>
 <body ng-app="ShoppingApp">
-  <div ng-controller='ShoppingListController as SLCtrl' class="container">
+  <div ng-controller='AlreadyBoughtShoppingController as SLCtrl' class="container">
   <h1>Shopping List Check Off</h1>
 
   <div class="row">
 
     <!-- To Buy List -->
-    <div ng-controller='ToBuyController as TBCtrl' class="col-md-6">
+    <div ng-controller='ToBuyShoppingController as TBCtrl' class="col-md-6">
      <h2>To Buy:</h2>
      <ul>
        <li ng-repeat="tbitem in TBCtrl.tbitems">  Buy {{ tbitem.quantity }} {{ tbitem.name }}
@@ -44,10 +44,12 @@
     </div>
 
     <!-- Already Bought List -->
-    <div ng-controller='BLCtrlController as BLCtrl' class="col-md-6">
+    <!-- <div ng-controller='BLCtrlController as BLCtrl' class="col-md-6"> -->
+      <div class="col-md-6">
+
      <h2>Already Bought:</h2>
      <ul>
-       <li ng-repeat="item in BLCtrl.items" ng-model="BLCtrl">  Bought {{ item.quantity }} {{ item.name }}
+       <li ng-repeat="item in SLCtrl.bLItems" ng-model="SLCtrl">  Bought {{ item.quantity }} {{ item.name }}
        </li>
      </ul>
      <div ng-if="SLCtrl.nothingBought" class="emptyMessage">Nothing bought yet.</div>
